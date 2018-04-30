@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Where are the foxes?</title>
+		<script type="text/javascript" src="https://d3js.org/d3.v4.min.js"></script>
+		<link href="https://fonts.googleapis.com/css?family=Fauna+One|Playfair+Display" rel="stylesheet">
+		<style type="text/css">
+			svg {
+				border: solid 0px #ccc;
+				background: white;
+
+			}		
+
+			path {
+
+				stroke: #FFC300;
+			}
+
+			p {
+				margin: 0px;
+			}
+			
+
+			#dash_container {
+				background: white;
+				width: 1400px;
+				height: 700px;
+				position: relative;
+				padding:20px;
+			}
+
+			#container2 {
+				background: white;
+				width: 100%;
+				height:100%;
+				position: relative;
+			}
+
+			#map{
+				background: red;
+				width: 58%;
+				height: 100%;
+				display: inline-block;
+			}
+
+			#word{
+				background: white;
+				width: 41%;
+				height: 100%;
+				display: inline-block;
+				position: relative;
+			}
+
+			#title{
+				background: white;
+				width: 100%;
+				height: 30%;
+				font-size: 75px;
+				font-family: 'Playfair Display', serif;
+				color: #FF5733;
+				font-weight: bold;
+				margin: 0px;
+
+			}
+
+			#paragraph{
+				background: white;
+				width: 100%;
+				height: 45%;
+				color: #6E6E6E;
+				font-family: 'Fauna One', serif;
+			}
+
+			#linechart {
+				background: green;
+				width: 100%;
+				height: 25%;
+			}
+
+			.axis line {
+				stroke: #6E6E6E;
+				stroke-width: 1px;
+			}
+
+			.axis path{
+				stroke: #6E6E6E;
+				stroke-width: 1px;
+			}
+
+			.axis text{
+				font-size: 9px;
+				font-family: Helvetica, sans-serif;
+				fill: #6E6E6E;				
+			}
+
+
+
+
+		</style>
+	</head>
+
+	<body>
+		<div id="dash_container">
+			
+			<div id="container2">
+				<div id="word">
+						<div id="title">
+						<p style="position: absolute;">HAVE YOU SEEN A FOX?</p></div>
+
+						<div id="paragraph"">
+
+						<p style="position: absolute;">I bet you think foxes are winsome creatures, as do the majority of enlightened individuals. This visualization illuminates fox sightings since the year 1800. Actually, we ought to be asking how Great Britons spend their time, and what we can and should learn from them.<br><br>by @cranberryviz</p><br>
+						</div>
+
+						<div id="linechart"></div>
+
+				</div>
+
+				<div id="map"></div>
+			</div>
+			
+			<!-- <div id="linechart"></div> -->
+		</div>
+		
+	</body>
+
+
+
+
+<script type="text/javascript">
+
+
+
+/////////////////////////////////
+//
+//	   SET UP STUFF FOR MAP
+//
+/////////////////////////////////
+//Width and height
+var w = d3.select("#map").node().clientWidth
+var h = d3.select("#map").node().clientHeight;
+
+
+
+//Define path generator, using the global projection
+var projection = d3.geoMercator()
+					.center([-3, 55.5])
+					.translate([w/2, h/2])
+					.scale([2100]);
+
+var path = d3.geoPath()
+				.projection(projection);
+
+//Create SVG element specifically for the MAP
+var svg = d3.select("#map")
+			.append("svg")
+			.attr("width", w)
+			.attr("height", h);
+
+/////////////////////////////////
+//
+//	   SET UP STUFF FOR LINECHART
+//
+/////////////////////////////////
+
+//Width and height
+var wLine = d3.select("#linechart").node().clientWidth;
+var hLine = d3.select("#linechart").node().clientHeight;
+var padding = 25;
+
+var svgLine = d3.select("#linechart")
+			.append("svg")
+			.attr("width", wLine)
+			.attr("height", hLine);
+
+
+
+/////////////////////////////////
+//
+//	   DATA DEPENDENT STUFF NOW
+//
+/////////////////////////////////
+
+//Load in GeoJSON data
+d3.json("lad.json", function(json) {
+	
+//Bind data and create one path per GeoJSON feature
+	svg.selectAll("path")
+	   .data(json.features)
+	   .enter()
+	   .append("path")				   
+	   .attr("d", path)
+	   .style("fill", function(d) {
+	   	var value = d.properties.value;
+
+	   	if (value) {
+	   		return color(value);
+	   	} else {
+	   		return "#FFE695";
+	   	}
+	   });
+
+
+	//Load in fox sighting data
+	d3.csv("foxes.csv", function(data) {
+
+		sightings_data = data.slice(0, 8000)
+		
+		//PUTTING POINTS ON THE MAP
+		svg.selectAll("circle")
+			.data(sightings_data)
+			.enter()
+			.append("circle")
+			.attr("cx", function(d) {
+				return projection([d.lon, d.lat])[0];
+			})
+			.attr("cy", function(d) {
+				return projection([d.lon, d.lat])[1];
+				   })
+			.attr("r", 1)
+			.style("fill", "#FF5733")
+			.style("opacity", 0.65)
+			//.append("title")
+			//.text(function (d) {
+			//	return d.year;
+			//});
+
+
+/////////////////////////drawing out the line chart
+
+		sightings_line = d3.nest()
+			.key(function(d){return d["Year"]})
+			.rollup(function(crap){return crap.length})
+			.entries(sightings_data)
+
+
+
+		//Create scale functions
+		/*xScale = d3.scaleLinear()
+					   .domain([
+							d3.min(sightings_line, function(d) { return d.Year; }),
+							d3.max(sightings_line, function(d) { return d.Year; })
+						])
+					   .range([padding, wLine]);*/
+
+		
+
+		xScale = d3.scaleLinear()
+					   .domain([d3.min(sightings_line, function(d) { return d.key; }), d3.max(sightings_line, function(d) { return d.key; })])
+					   .range([padding, wLine]);
+
+		yScale = d3.scaleLinear()
+						.domain([0, d3.max(sightings_line, function(d) { return d.value; })])
+						.range([hLine - padding, 0]);
+
+		//Define axes
+		xAxis = d3.axisBottom()
+					.scale(xScale)
+					.ticks(10);
+
+		//Define Y axis
+		yAxis = d3.axisLeft()
+					.scale(yScale)
+					.ticks(5);
+
+		//Create X axis
+		svgLine.append("g")
+			.attr("class", "axis")
+			.attr("transform", "translate(0," + (hLine - padding) + ")")
+			.call(xAxis);
+		
+		//Create Y axis
+		svgLine.append("g")
+			.attr("class", "axis")
+			.attr("transform", "translate(" + padding + ",0)")
+			.call(yAxis);
+
+
+		//Define line generator
+		line = d3.line()
+					.x(function(d) { return xScale(d.key); })
+					.y(function(d) { return yScale(d.value); });
+
+
+		//Create line in linechart
+		svgLine.append("path")
+			.datum(sightings_line)
+			.attr("d", line)
+			.attr("fill", "none")
+			.style("stroke", "#FF5733")
+			.style("stroke-width", "2px")
+			;
+
+
+
+//IDEAS -- DO A SCROLL THING, do a zoom?, ADD ANOTHER SPECIES
+
+
+		
+
+	});		
+
+
+
+
+});
+
+
+</script>
+</html>
