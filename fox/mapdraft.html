@@ -70,6 +70,7 @@
 				height: 45%;
 				color: #6E6E6E;
 				font-family: 'Fauna One', serif;
+				font-size: 14px;
 			}
 
 			#linechart {
@@ -90,8 +91,29 @@
 
 			.axis text{
 				font-size: 9px;
-				font-family: Helvetica, sans-serif;
+				font-family: 'Fauna One', serif;
 				fill: #6E6E6E;				
+			}
+
+			.label {
+				fill: #6E6E6E;
+				font-size: 9px;
+				font-family: 'Fauna One', serif;
+			}
+
+			div.tooltip {
+				position: absolute;
+				text-align: left;
+				width: 120px;
+				height: 25px;
+				padding: 7px;
+				font-size: 9px;
+				font-family: 'Fauna One', serif;
+				color: white;
+				background: #581845;
+				border: 0px;
+				border-radius: 6px;
+				pointer-events: none;
 			}
 
 
@@ -110,7 +132,7 @@
 
 						<div id="paragraph"">
 
-						<p style="position: absolute;">I bet you think foxes are winsome creatures, as do the majority of enlightened individuals. This visualization illuminates fox sightings since the year 1800. Actually, we ought to be asking how Great Britons spend their time, and what we can and should learn from them.<br><br>by @cranberry_kat</p><br>
+						<p style="position: absolute;">I bet you think foxes are winsome creatures, as do the majority of enlightened individuals. This visualization illuminates fox sightings since the year 1800 (to about the end of the 20th Century) in Great Britain. <br><br>Actually, we ought to be asking how Great Britons spend their time, and what we can and should learn from them.<br><br>by @cranberry_kat<br>Data source: nbnatlas.org</p>
 						</div>
 
 						<div id="linechart"></div>
@@ -157,6 +179,12 @@ var svg = d3.select("#map")
 			.append("svg")
 			.attr("width", w)
 			.attr("height", h);
+
+//Define the div for the tooltip
+var div = d3.select("#map")
+			.append("div")
+			.attr("class", "tooltip")
+			.style("opacity", 0);
 
 /////////////////////////////////
 //
@@ -205,7 +233,7 @@ d3.json("lad.json", function(json) {
 	//Load in fox sighting data
 	d3.csv("foxes.csv", function(data) {
 
-		sightings_data = data.slice(0, 8000)
+		sightings_data = data.slice(0, 10000)
 		
 		//PUTTING POINTS ON THE MAP
 		svg.selectAll("circle")
@@ -221,6 +249,22 @@ d3.json("lad.json", function(json) {
 			.attr("r", 1)
 			.style("fill", "#FF5733")
 			.style("opacity", 0.65)
+			.on("mouseover", function(d) {
+				console.log(d)
+				div.transition()
+					.duration(200)
+					.style("opacity", .85);
+				div	.html(
+							"Species: " + d.Species + "<br/>" +
+							"Year spotted: " + d.Year )
+					.style("left", (d3.event.pageX) + "px")
+					.style("top", (d3.event.pageY) + "px")
+			})
+			.on("mouseout", function(d) {
+				div.transition()
+					.duration(500)
+					.style("opacity", 0);
+			});
 			//.append("title")
 			//.text(function (d) {
 			//	return d.year;
@@ -257,7 +301,11 @@ d3.json("lad.json", function(json) {
 		//Define axes
 		xAxis = d3.axisBottom()
 					.scale(xScale)
+					.tickFormat(function(d) { 
+									return d+""
+								 })
 					.ticks(10);
+
 
 		//Define Y axis
 		yAxis = d3.axisLeft()
@@ -275,6 +323,23 @@ d3.json("lad.json", function(json) {
 			.attr("class", "axis")
 			.attr("transform", "translate(" + padding + ",0)")
 			.call(yAxis);
+
+		//Add the x-axis label
+		svgLine.append("text")
+			.attr("class", "x label")
+			.attr("text-anchor", "end")
+			.attr("x", wLine)
+			.attr("y", hLine - 32)
+			.text("Year");
+
+		//Add the y-axis label
+		svgLine.append("text")
+			.attr("class", "y label")
+			.attr("text-anchor", "end")
+			.attr("y", 32)
+			.attr("dy", ".75em")
+			.attr("transform", "rotate(-90)")
+			.text("Number of foxes spotted");
 
 
 		//Define line generator
@@ -295,6 +360,7 @@ d3.json("lad.json", function(json) {
 
 
 //IDEAS -- DO A SCROLL THING, do a zoom?, ADD ANOTHER SPECIES
+//Stuff to do: add axis labels; interactivity-- maybe a tooltip with year and province/ hover to change color of the tooltip?
 
 
 		
