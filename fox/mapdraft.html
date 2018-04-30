@@ -2,8 +2,8 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<title>Where are the foxes?</title>
-		<link rel="icon" href="https://instagram.fapa1-1.fna.fbcdn.net/vp/f18a1b5cd4b5639269ef026ae007cee6/5B61FCC7/t51.2885-19/s320x320/29090585_153644635331502_3928249506365177856_n.jpg">
+		<title>Fox Sightings</title>
+		<link rel="shortcut icon" type="image/png" href="https://instagram.fapa1-1.fna.fbcdn.net/vp/93fad226a6e92a5f6e80bfe2ecb52fb2/5B962E37/t51.2885-19/s150x150/29090585_153644635331502_3928249506365177856_n.jpg">
 		<script type="text/javascript" src="https://d3js.org/d3.v4.min.js"></script>
 		<link href="https://fonts.googleapis.com/css?family=Fauna+One|Playfair+Display" rel="stylesheet">
 		<style type="text/css">
@@ -133,7 +133,7 @@
 
 						<div id="paragraph"">
 
-						<p style="position: absolute;">I bet you think foxes are winsome creatures, as do the majority of enlightened individuals. This visualization illuminates fox sightings since the year 1800 (to about the end of the 20th Century) in Great Britain. <br><br>Actually, we ought to be asking how Great Britons spend their time, and what we can and should learn from them.<br><br>by @cranberry_kat<br>Data source: nbnatlas.org</p>
+						<p style="position: absolute;">I bet you think foxes are winsome creatures, as do the majority of enlightened individuals. This visualization illuminates fox sightings since the year 1800 (to about the end of the 20th Century) in Great Britain. Actually, we ought to be asking how Great Britons spend their time, and what we can and should learn from them.<br><br>by @cranberry_kat<br>Data source: nbnatlas.org</p>
 						</div>
 
 						<div id="linechart"></div>
@@ -251,7 +251,11 @@ d3.json("lad.json", function(json) {
 			.style("fill", "#FF5733")
 			.style("opacity", 0.65)
 			.on("mouseover", function(d) {
-				console.log(d)
+				//console.log(d)
+				d3.select(this)
+					.attr("r", 5)
+					.style("fill", "#581845");
+
 				div.transition()
 					.duration(200)
 					.style("opacity", .85);
@@ -262,6 +266,10 @@ d3.json("lad.json", function(json) {
 					.style("top", (d3.event.pageY) + "px")
 			})
 			.on("mouseout", function(d) {
+				d3.select(this)
+					.attr("r", 1)
+					.attr("fill", "#FF5733")
+
 				div.transition()
 					.duration(500)
 					.style("opacity", 0);
